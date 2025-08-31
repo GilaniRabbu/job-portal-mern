@@ -20,27 +20,28 @@ const auth = (...roles: string[]) => {
   ) => {
     try {
       const token = extractToken(req.headers.authorization);
-      console.log('token is', token);
       if (!token) {
         throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
       }
 
+      // verify token
       const verifiedUser = jwtHelpers.verifyToken(
         token,
         config.jwt.access_token_secret as Secret
-      );
+      ) as JwtPayload;
 
-      if (!verifiedUser?.phone) {
+      // ✅ FIX: check id or email, not phone
+      if (!verifiedUser?.id && !verifiedUser?.email) {
         throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
       }
 
-      const user = await User.findOne({ phone: verifiedUser.phone });
+      // find user from DB
+      const user = await User.findById(verifiedUser.id);
 
       if (!user) {
         throw new ApiError(httpStatus.NOT_FOUND, 'User not found!');
       }
 
-      // Optional user status checks
       if (user.isDeleted) {
         throw new ApiError(httpStatus.BAD_REQUEST, 'This user is deleted!');
       }
@@ -54,8 +55,8 @@ const auth = (...roles: string[]) => {
           'Forbidden! You are not authorized!'
         );
       }
-      req.user = user;
 
+      req.user = user;
       next();
     } catch (err) {
       next(err);
