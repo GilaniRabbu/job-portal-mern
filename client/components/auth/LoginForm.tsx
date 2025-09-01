@@ -34,7 +34,7 @@ export default function LoginForm() {
 
       if (res.success) {
         toast.success(res.message);
-        router.push("/jobs"); // ✅ redirect to jobs
+        router.push("/");
       }
     } catch (error) {
       toast.error("Login failed. Please try again.");
