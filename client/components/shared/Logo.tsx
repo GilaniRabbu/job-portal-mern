@@ -1,8 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const Logo = () => {
   return (
-    <div>
+    <Link href="/">
       <Image
         src="/logo.png"
         alt="Logo"
@@ -10,7 +11,7 @@ const Logo = () => {
         height={50}
         className="object-contain"
       />
-    </div>
+    </Link>
   );
 };
 
