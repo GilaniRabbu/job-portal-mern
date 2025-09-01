@@ -1,6 +1,6 @@
 import React from "react";
 import ContainerWrapper from "../common/ContainerWrapper";
-import { Facebook, Instagram, Linkedin } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import Image from "next/image";
 import Logo from "./Logo";
 
@@ -40,9 +40,9 @@ const Footer = () => {
 
   // Social links data
   const socialLinks = [
-    { icon: <Facebook size={20} />, url: "#" },
-    { icon: <Instagram size={20} />, url: "#" },
-    { icon: <Linkedin size={20} />, url: "#" },
+    { icon: <FaFacebookF size={20} />, url: "#" },
+    { icon: <FaInstagram size={20} />, url: "#" },
+    { icon: <FaXTwitter size={20} />, url: "#" },
   ];
 
   // Popular posts data
