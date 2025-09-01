@@ -1,8 +1,7 @@
 /* eslint-disable */
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLoginUserMutation } from "@/redux/api/authApi";
 import { toast } from "sonner";
@@ -51,7 +50,7 @@ export default function LoginForm() {
   return (
     <section className="py-10 lg:py-24">
       <ContainerWrapper className="flex justify-center items-center">
-        <div className="bg-[#071400] rounded-2xl max-w-6xl w-full overflow-hidden shadow-lg">
+        <div className="bg-[#071400] rounded-2xl max-w-5xl w-full overflow-hidden shadow-lg">
           <div className="lg:flex">
             <div className="flex-1 p-12">
               <div className="lg:max-w-lg">
@@ -60,7 +59,7 @@ export default function LoginForm() {
                 </h1>
                 <p className="mb-8 text-center text-white">
                   Don't have an account?{" "}
-                  <a href="#" className="text-[#05AF2B]">
+                  <a href="/signup" className="text-[#05AF2B]">
                     Sign Up
                   </a>
                 </p>

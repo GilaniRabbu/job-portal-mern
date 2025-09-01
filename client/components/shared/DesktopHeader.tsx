@@ -32,7 +32,7 @@ const DesktopHeader = () => {
               LOGIN
             </Link>
             <Link
-              href="/login"
+              href="/signup"
               className="px-4 py-2 rounded-full text-white bg-[#05AF2B]"
             >
               Registration

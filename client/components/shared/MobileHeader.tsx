@@ -61,7 +61,7 @@ const MobileHeader = () => {
                 LOGIN
               </Link>
               <Link
-                href="/login"
+                href="/signup"
                 onClick={() => setIsOpen(false)}
                 className="px-4 py-2 rounded-full text-white bg-[#05AF2B]"
               >
