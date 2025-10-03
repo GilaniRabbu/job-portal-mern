@@ -1,82 +1,31 @@
-/* eslint-disable */
+import { createSlice } from "@reduxjs/toolkit";
 
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+// Define User type (matches login response)
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
 
-type TAuthState = {
-  user: {
-    _id?: string;
-    phone?: string;
-    firstName?: string;
-    lastName?: string;
-    profilePicture?: {
-      url: string;
-      altText: string;
-    };
-    [key: string]: any;
-  } | null;
-};
-
-const initialState: TAuthState = {
-  user: {
-    _id: "",
-    phone: "",
-    firstName: "",
-    lastName: "",
-    isPhoneVerified: false,
-    isOpenJoinUs: false,
-    isOpenSelectArea: false,
-    isOpenSelectServices: false,
-    role: "", // ✅ Default role in initial state
-  },
-};
+interface AuthState {
+  user: User | null;
+  token: string | null;
+}
 
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+  initialState: { user: null, token: null } as AuthState,
   reducers: {
-    setUser: (
-      state,
-      action: PayloadAction<{
-        user: {
-          _id?: string;
-          phone?: string;
-          firstName?: string;
-          lastName?: string;
-          isPhoneVerified?: boolean;
-          isRegistered?: boolean;
-          profilePicture?: {
-            url: string;
-            altText: string;
-          };
-          role?: string; // ✅ Also added to payload type
-          isOpenJoinUs?: boolean;
-          isOpenSelectArea?: boolean;
-          isOpenSelectServices?: boolean;
-          [key: string]: any;
-        };
-      }>
-    ) => {
-      const { user } = action.payload;
-      state.user = user;
-    },
-    logout: (state) => {
-      state.user = null;
+    setUser: (state, action: { payload: { user: User; token: string } }) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
     },
     removeUser: (state) => {
       state.user = null;
+      state.token = null;
     },
   },
 });
 
-export const { setUser, logout, removeUser } = authSlice.actions;
-
+export const { setUser, removeUser } = authSlice.actions;
 export default authSlice.reducer;
-
-// Selectors
-
-export const selectCurrentUser = (state: { auth: TAuthState }) =>
-  state.auth.user;
-
-// ✅ Optional: Selector to get role
-export const selectUserRole = (state: { auth: TAuthState }) =>
-  state.auth.user?.role || null;

@@ -2,11 +2,10 @@
 
 import { baseApi } from "./baseApi";
 
-const jobsApi = baseApi.injectEndpoints({
+export const jobsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    // Create Job
-    createJob: build.mutation({
-      query: (data: any) => ({
+    createJob: build.mutation<any, any>({
+      query: (data) => ({
         url: "/jobs",
         method: "POST",
         body: data,
@@ -14,18 +13,60 @@ const jobsApi = baseApi.injectEndpoints({
       invalidatesTags: ["Jobs"],
     }),
 
-    // Get All Jobs (for logged-in user)
-    getJobs: build.query({
-      query: () => ({
-        url: "/jobs",
+    getJobs: build.query<
+      { jobs: any[]; total: number; page: number; totalPages: number },
+      {
+        userId?: string;
+        page?: number;
+        limit?: number;
+        sortBy?: string;
+        sortOrder?: "asc" | "desc";
+      }
+    >({
+      query: ({
+        userId,
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortOrder = "desc",
+      }) => ({
+        url: userId
+          ? `/jobs?userId=${userId}&page=${page}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`
+          : `/jobs?page=${page}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
         method: "GET",
       }),
+      transformResponse: (response: {
+        data?: { jobs: any[]; total: number; page: number; totalPages: number };
+      }) => response.data || { jobs: [], total: 0, page: 1, totalPages: 0 },
       providesTags: ["Jobs"],
     }),
 
-    // Update Job
-    updateJob: build.mutation({
-      query: ({ id, ...data }: any) => ({
+    getAllJobs: build.query<
+      { jobs: any[]; total: number; page: number; totalPages: number },
+      {
+        page?: number;
+        limit?: number;
+        sortBy?: string;
+        sortOrder?: "asc" | "desc";
+      }
+    >({
+      query: ({
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortOrder = "desc",
+      }) => ({
+        url: `/jobs/all?page=${page}&limit=${limit}&sortBy=${sortBy}&sortOrder=${sortOrder}`,
+        method: "GET",
+      }),
+      transformResponse: (response: {
+        data?: { jobs: any[]; total: number; page: number; totalPages: number };
+      }) => response.data || { jobs: [], total: 0, page: 1, totalPages: 0 },
+      providesTags: ["Jobs"],
+    }),
+
+    updateJob: build.mutation<any, { id: string } & any>({
+      query: ({ id, ...data }) => ({
         url: `/jobs/${id}`,
         method: "PUT",
         body: data,
@@ -33,9 +74,8 @@ const jobsApi = baseApi.injectEndpoints({
       invalidatesTags: ["Jobs"],
     }),
 
-    // Delete Job
-    deleteJob: build.mutation({
-      query: (id: string) => ({
+    deleteJob: build.mutation<any, string>({
+      query: (id) => ({
         url: `/jobs/${id}`,
         method: "DELETE",
       }),
@@ -47,6 +87,7 @@ const jobsApi = baseApi.injectEndpoints({
 export const {
   useCreateJobMutation,
   useGetJobsQuery,
+  useGetAllJobsQuery,
   useUpdateJobMutation,
   useDeleteJobMutation,
 } = jobsApi;

@@ -1,7 +1,11 @@
+// import JobForm from "@/components/home/create-job-form";
+import GetAllJobs from "@/components/home/get-all-jobs";
+
 export default function Home() {
   return (
     <>
-      <h1>Home Page</h1>
+      {/* <JobForm /> */}
+      <GetAllJobs />
     </>
   );
 }

@@ -7,6 +7,7 @@ const router = express.Router();
 // All routes are protected with JWT auth middleware
 router.post('/', auth(), JobController.createJob);
 router.get('/', auth(), JobController.getJobs);
+router.get('/all', JobController.getAllJobs);
 router.put('/:id', auth(), JobController.updateJob);
 router.delete('/:id', auth(), JobController.deleteJob);
 

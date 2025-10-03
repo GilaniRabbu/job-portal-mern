@@ -20,12 +20,11 @@ export default function SignUpForm() {
     confirmPassword: "",
   });
 
-  const [createAccount, { isLoading }] = useCreateUserMutation();
+  const [createUser, { isLoading }] = useCreateUserMutation();
   const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,22 +35,15 @@ export default function SignUpForm() {
       return;
     }
 
-    if (!formData.name || !formData.email || !formData.password) {
-      toast.error("All fields are required");
-      return;
-    }
-
     try {
       const { confirmPassword, ...payload } = formData;
-      const res = await createAccount(payload).unwrap();
-
+      const res = await createUser(payload).unwrap();
       if (res.success) {
-        toast.success(res.message || "Account created successfully!");
+        toast.success(res.message);
         router.push("/login");
       }
     } catch (err: any) {
-      console.error("Sign Up error:", err);
-      toast.error(err?.data?.message || "Something went wrong");
+      toast.error(err.message);
     }
   };
 

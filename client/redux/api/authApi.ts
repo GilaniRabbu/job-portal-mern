@@ -2,7 +2,6 @@ import { baseApi } from "./baseApi";
 
 const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    // login user
     loginUser: build.mutation({
       query: (data) => ({
         url: "/auth/login",

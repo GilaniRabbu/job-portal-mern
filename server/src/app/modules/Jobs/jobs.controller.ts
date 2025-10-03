@@ -3,12 +3,13 @@ import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { JobService } from './jobs.service';
+import { paginationHelpers } from '../../../helpars/paginationHelper';
+import { IPaginationOptions } from '../../../interfaces/paginations';
 
 const createJob = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id; // set by auth middleware
+  const userId = (req.user as any).id;
   const result = await JobService.createJob(req.body, userId);
 
-  console.log(userId);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
@@ -18,8 +19,26 @@ const createJob = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getJobs = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
-  const result = await JobService.getJobs(userId);
+  const authUserId = (req.user as any).id;
+  const filterUserId = req.query.userId as string;
+  const userId = filterUserId || authUserId;
+
+  // Parse pagination params
+  const paginationOptions: IPaginationOptions = {
+    page: parseInt(req.query.page as string),
+    limit: parseInt(req.query.limit as string),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as 'asc' | 'desc',
+  };
+  const pagination = paginationHelpers.calculatePagination(paginationOptions);
+
+  // Cast sortOrder to match IPaginationOptions
+  const typedPagination: IPaginationOptions = {
+    ...pagination,
+    sortOrder: pagination.sortOrder as 'asc' | 'desc', // Safe: helper ensures 'asc' or 'desc'
+  };
+
+  const result = await JobService.getJobs(userId, typedPagination);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -29,8 +48,34 @@ const getJobs = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllJobs = catchAsync(async (req: Request, res: Response) => {
+  // Parse pagination params
+  const paginationOptions: IPaginationOptions = {
+    page: parseInt(req.query.page as string),
+    limit: parseInt(req.query.limit as string),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as 'asc' | 'desc',
+  };
+  const pagination = paginationHelpers.calculatePagination(paginationOptions);
+
+  // Cast sortOrder to match IPaginationOptions
+  const typedPagination: IPaginationOptions = {
+    ...pagination,
+    sortOrder: pagination.sortOrder as 'asc' | 'desc', // Safe: helper ensures 'asc' or 'desc'
+  };
+
+  const result = await JobService.getJobs(undefined, typedPagination);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'All jobs retrieved successfully',
+    data: result,
+  });
+});
+
 const updateJob = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = (req.user as any).id;
   const jobId = req.params.id;
   const result = await JobService.updateJob(jobId, userId, req.body);
 
@@ -43,7 +88,7 @@ const updateJob = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteJob = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = (req.user as any).id;
   const jobId = req.params.id;
   await JobService.deleteJob(jobId, userId);
 
@@ -58,6 +103,7 @@ const deleteJob = catchAsync(async (req: Request, res: Response) => {
 export const JobController = {
   createJob,
   getJobs,
+  getAllJobs,
   updateJob,
   deleteJob,
 };

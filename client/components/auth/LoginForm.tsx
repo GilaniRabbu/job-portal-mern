@@ -5,44 +5,39 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLoginUserMutation } from "@/redux/api/authApi";
 import { toast } from "sonner";
-import { Eye, Lock, Mail, X } from "lucide-react";
+import { Eye, Lock, Mail } from "lucide-react";
 import { FaFacebookF, FaApple, FaXTwitter } from "react-icons/fa6";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
 import ContainerWrapper from "../common/ContainerWrapper";
+import Cookies from "js-cookie";
 
 export default function LoginForm() {
-  const [userLogin, { isLoading }] = useLoginUserMutation();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loginUser, { isLoading }] = useLoginUserMutation();
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login form submitted:", formData);
 
     try {
-      const res = await userLogin(formData).unwrap();
-      console.log("Login success:", res);
-
+      const res = await loginUser(formData).unwrap();
       if (res.success) {
+        localStorage.setItem("accessToken", res.data.accessToken);
+        Cookies.set("accessToken", res.data.accessToken, {
+          secure: true,
+          sameSite: "strict",
+        });
         toast.success(res.message);
         router.push("/");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error("Login failed. Please try again.");
     }
   };

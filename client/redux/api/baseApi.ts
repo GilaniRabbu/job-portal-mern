@@ -7,25 +7,29 @@ import {
   FetchArgs,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
-import { parseCookies, destroyCookie } from "nookies";
+import { destroyCookie } from "nookies";
 import { removeUser, setUser } from "../slice/authSlice";
 import Cookies from "js-cookie";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_BASEURL,
   prepareHeaders: (headers: Headers) => {
-    const accessToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("accessToken")
-        : null;
+    let token: string | null = null;
+
+    if (typeof window !== "undefined") {
+      token =
+        localStorage.getItem("accessToken") ||
+        Cookies.get("accessToken") ||
+        null;
+    }
 
     headers.set("accept", "application/json");
-    if (accessToken) {
-      headers.set("authorization", `Bearer ${accessToken}`); // Fixed: template literal with backticks
+    if (token) {
+      headers.set("authorization", `Bearer ${token}`);
     }
     return headers;
   },
-  credentials: "include", // ensures cookies are sent with requests
+  credentials: "include", // send refreshToken cookie
 });
 
 const baseQueryWithRefreshToken: BaseQueryFn<
@@ -36,53 +40,42 @@ const baseQueryWithRefreshToken: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
 
   if (result.error?.status === 401) {
-    // Try to refresh token
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASEURL}/auth/refresh-token`, // Fixed template literal
+        `${process.env.NEXT_PUBLIC_BASEURL}/auth/refresh-token`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // No Authorization header, refresh token sent via cookie
-          },
-          credentials: "include", // send cookies with refresh request
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // cookie refresh
         }
       );
 
       const data = await res.json();
 
       if (data?.success && data?.data?.accessToken) {
-        // Save new access token
         localStorage.setItem("accessToken", data.data.accessToken);
+        Cookies.set("accessToken", data.data.accessToken, {
+          secure: true,
+          sameSite: "strict",
+        });
 
-        // Optional: update user info in redux store if returned
-        // if (data.data.user) {
-        //   api.dispatch(
-        //     setUser({ user: data.data.user, token: data.data.accessToken })
-        //   );
-        // }
+        if (data.data.user) {
+          api.dispatch(
+            setUser({ user: data.data.user, token: data.data.accessToken })
+          );
+        }
 
-        // Retry original query with new token
         result = await baseQuery(args, api, extraOptions);
       } else {
-        console.error("Token refresh failed:", data);
         cleanupAuthState(api);
       }
     } catch (error) {
-      console.error("Token refresh error:", error);
       cleanupAuthState(api);
     }
   }
 
   return result;
 };
-
-function redirectToLogin() {
-  if (typeof window !== "undefined") {
-    window.location.href = "/login";
-  }
-}
 
 function cleanupAuthState(api: any) {
   if (typeof window !== "undefined") {
@@ -97,7 +90,10 @@ function cleanupAuthState(api: any) {
   Cookies.remove("refreshToken");
 
   api.dispatch(removeUser());
-  redirectToLogin();
+
+  if (typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
 }
 
 export const baseApi = createApi({
